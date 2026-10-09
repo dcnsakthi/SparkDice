@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'">
+  <title>SparkDice | Serverless query insights</title>
+  <script src="theme.js"></script>
+  <link rel="stylesheet" href="styles.css">
+  <script src="profile.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./index.html" aria-label="SparkDice home">
+      <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true"><rect x="5" y="9" width="34" height="34" rx="10" transform="rotate(-8 22 26)"/><circle cx="15" cy="20" r="2.5"/><circle cx="27" cy="32" r="2.5"/><circle cx="15" cy="32" r="2.5"/><path d="M34 2l3.2 8.8L46 14l-8.8 3.2L34 26l-3.2-8.8L22 14l8.8-3.2z"/></svg>
+      <span class="brand-lockup"><span class="brand-name">Spark<span>Dice</span></span><span class="brand-tagline">Slice. Dice. Insight.</span></span>
+    </a>
+    <div class="topbar-actions"><span class="privacy"><span class="dot"></span> Local analysis only</span><div data-theme-control></div></div>
+  </header>
+  <main>
+    <section class="intro">
+      <div><p class="eyebrow">QUERY PERFORMANCE WORKBENCH</p>
+        <h1>From query plan to clear next steps.</h1>
+        <p class="muted">Spark UI-style exploration of your downloaded Databricks query profiles. No account, upload service, or AI API required.</p>
+      </div>
+      <div id="dropzone" class="dropzone">
+        <label class="button primary" for="file">Open query profile<input id="file" type="file" accept=".json,application/json"></label>
+        <span>or drop a JSON export here &middot; up to 50 MiB</span>
+        <button id="sample" class="link-button" type="button">Load supplied example</button>
+      </div>
+    </section>
+    <div id="error" class="notice error" role="alert" hidden></div>
+    <p id="load-status" role="status" class="muted"></p>
+    <section id="empty" class="empty-state">
+      <h2>A familiar view of an unfamiliar bottleneck.</h2>
+      <div class="empty-grid">
+        <article><span class="step">01</span><h3>Follow the plan</h3><p>Explore operator dependencies, row counts, timing, and the original metrics.</p></article>
+        <article><span class="step">02</span><h3>Find the expensive work</h3><p>Rank operators and compare stage attempts on a real timestamp-based timeline.</p></article>
+        <article><span class="step">03</span><h3>Tune with evidence</h3><p>Get measured observations, conditional recommendations, and a validation step for each.</p></article>
+      </div>
+      <p class="muted">In Databricks: Query history &rarr; Query profile &rarr; Download JSON. This is a profile viewer, not a Spark History Server.</p>
+    </section>
+    <div id="workspace" hidden>
+      <section class="query-heading">
+        <div><p id="filename" class="eyebrow"></p><h2 id="query-title"></h2><p id="query-info" class="muted"></p></div>
+        <div class="actions"><label>Execution graph <select id="graph-select"></select></label><button id="export" type="button">Export analysis</button></div>
+      </section>
+      <div id="warnings"></div>
+      <section id="summary" class="cards" aria-label="Query summary"></section>
+      <div class="scope-note">A query profile is not a complete Spark event log. Task distributions, executor utilization, GC, and a proven critical path are not reconstructed. Missing values are shown as unavailable.</div>
+      <nav id="tabs" class="tabs" aria-label="Analysis views">
+        <button type="button" data-tab="overview" aria-current="page">Overview</button>
+        <button type="button" data-tab="plan">Execution plan</button>
+        <button type="button" data-tab="operators">Operators</button>
+        <button type="button" data-tab="stages">Stages</button>
+        <button type="button" data-tab="recommendations">Hotspots &amp; recommendations</button>
+        <button type="button" data-tab="query">Query &amp; limitations</button>
+      </nav>
+      <section id="overview" class="panel"></section>
+      <section id="plan" class="panel" hidden>
+        <div class="section-heading"><div><h2>Execution plan</h2><p class="muted">Dependencies flow from result operators to their inputs. Select a node for details. All exported nodes are retained.</p></div>
+          <label>Zoom <select id="zoom"><option value="0.7">70%</option><option value="1" selected>100%</option><option value="1.3">130%</option></select></label>
+        </div>
+        <p id="plan-status" class="muted"></p><div id="dag-scroll" class="dag-scroll"><svg id="dag" role="img" aria-label="Query operator dependency graph"></svg></div>
+      </section>
+      <section id="operators" class="panel" hidden>
+        <div class="section-heading"><div><h2>Operator explorer</h2><p class="muted">Exclusive time when available; otherwise reported key duration. Cumulative times are never added into rankings.</p></div></div>
+        <div class="filters"><label>Search <input id="operator-search" type="search" placeholder="Name, ID, or tag"></label>
+          <label>Stage <select id="stage-filter"><option value="">All stages</option></select></label>
+          <label>Sort by <select id="operator-sort"><option value="duration">Time, descending</option><option value="peak">Peak memory, descending</option><option value="rows">Output rows, descending</option><option value="id">Operator ID</option></select></label>
+        </div>
+        <p id="operator-count" class="muted"></p><div id="operator-table" class="table-scroll"></div>
+      </section>
+      <section id="stages" class="panel" hidden></section>
+      <section id="recommendations" class="panel" hidden></section>
+      <section id="query" class="panel" hidden></section>
+    </div>
+    <footer>Read the evidence. Change one thing. Profile again. <span>Profiles may contain SQL, identities, and data literals. Treat exports as sensitive.</span></footer>
+  </main>
+  <dialog id="detail"><div class="dialog-toolbar"><span>OPERATOR DETAILS</span><button id="close-detail" type="button" aria-label="Close operator details">Close</button></div><div id="detail-body"></div></dialog>
+</body>
+</html>
